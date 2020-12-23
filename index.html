@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>IndexedDb Testing</title>
+    <base href="/" />
+    <!-- Bulma -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" type='text/css'>
+</head>
+
+<body>    
+    <div class="container">
+        <h1 class="title">IndexedDb Tests</h1>
+    </div>
+
+    <script src="jsDB.js"></script>
+    <script>
+const db = new jsDB({name: 'MyDB', version: 1, 
+    tables: [{name: 'Usuarios', options: {keyPath : 'ssn', autoIncrement: true}, 
+            columns: [{name: 'Id', keyPath: true, autoIncrement: false, unique: true }, 
+                      {name: 'Email', keyPath: true, autoIncrement: false, unique: true }, 
+                      {name: 'Name', autoIncrement: false, unique: false }]},
+            {name: 'Ministros', options: {keyPath : 'ssn', autoIncrement: true}, 
+            columns: [{name: 'Id', keyPath: true, autoIncrement: false, unique: true }, 
+                      {name: 'Email', keyPath: true, autoIncrement: false, unique: true }, 
+                      {name: 'Name', autoIncrement: false, unique: false }]}
+            ]});
+
+console.log(db.Connected());
+
+db.Insert('Usuarios', data = [
+    {Name: 'Rapaza', Email: 'rapaza@example.com'},
+    {Name: 'Dinoa', Email: 'dinoa@example.com'}
+], function (result) {
+    console.log(result);   
+});
+db.Update('Usuarios', data = [
+    {Name: 'Rapaza10', ssn: 51},
+    {Name: 'Dinoa1', Email: 'dinoa1@example.com', ssn: 52}
+], function (result) {
+    console.log(result);   
+});
+    db.Select('Usuarios', function (result){
+        console.log('table',result);  
+    });    
+    db.SelectById('Usuarios', 2, function (result){
+        console.log('by id 2',result);  
+    });    
+    db.SelectById('Usuarios', 10, function (result){
+        console.log('by id 10',result);  
+    });  
+    db.SelectByColumn('Usuarios', 'Email', 'rapaza@example.com', function (result){
+        console.log('by id rapaza@example.com',result);  
+    });          
+    </script>
+
+</body>
+
+</html>
