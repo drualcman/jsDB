@@ -450,14 +450,14 @@ class jsDB{
      * @param {bytes} buffer file buffer
      * @param {string} type file type
      */
-    #arrayBufferToBlob(buffer, type) {
+    HelperArrayBufferToBlob(buffer, type) {
         return new Blob([buffer], {type: type});
     }
     /**
-     * Get a file from a DB for compatibility with most of the browsers
+     * Promise to get a file from a da from a DB for compatibility with most of the browsers
      * @param {bytes} blob arraybuffer byte to retrive
      */
-    #blobToArrayBuffer(blob) {
+    HelperBlobToArrayBuffer(blob) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.addEventListener('loadend', (e) => {
@@ -466,7 +466,7 @@ class jsDB{
           reader.addEventListener('error', reject);
           reader.readAsArrayBuffer(blob);
         });
-      }
+    }
 }
 
 
