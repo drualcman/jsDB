@@ -152,16 +152,17 @@ class jsDB{
                 let transaction = db.transaction(table, 'readwrite');
                 let store = transaction.objectStore(table);                
                 data.forEach(el => store.add(el));
-                transaction.onerror = ev => {
-                    throw "Request fail! " + ev.target.error.message;
-                };
-                transaction.oncomplete = ev => {
-                    callBack('Insert done!');
+                transaction.onerror = ev => {                    
                     db.close();
+                    callBack({result: false, message: ev.target.error.message});
+                };
+                transaction.oncomplete = ev => {                    
+                    db.close();
+                    callBack({result: true, message: 'Insert done!'});
                 };                
             } catch (error) {
                 db.close();
-                throw "Insert fail! " + error.message;                  
+                callBack({result: false, message: error.message});         
             }
         };        
     }    
@@ -174,15 +175,16 @@ class jsDB{
                 let store = transaction.objectStore(table);                
                 data.forEach(el => store.put(el));
                 transaction.onerror = ev => {
-                    throw "Request fail! " + ev.target.error.message;
+                    db.close();
+                    callBack({result: false, message: ev.target.error.message});
                 };
                 transaction.oncomplete = ev => {
-                    callBack('Update done!');
                     db.close();
+                    callBack({result: true, message: 'Update done!'});
                 };                
-            } catch (error) {
+            } catch (error) { 
                 db.close();
-                throw "Update fail! " + error.message;                  
+                callBack({result: false, message: error.message});                 
             }
         };        
     }
@@ -195,15 +197,16 @@ class jsDB{
                 let store = transaction.objectStore(table);
                 store.delete(id);
                 transaction.onerror = ev => {
-                    throw "Request fail! " + ev.target.error.message;
+                    db.close();
+                    callBack({result: false, message: ev.target.error.message});
                 };
                 transaction.onsuccess  = ev => {
-                    callBack('Delete done!');
                     db.close();
+                    callBack({result: true, message: 'Delete done!'});
                 };                
             } catch (error) {
                 db.close();
-                throw "Delete fail! " + error.message;                
+                callBack({result: false, message: error.message});                 
             }
         };        
     }
@@ -216,15 +219,16 @@ class jsDB{
                 let store = transaction.objectStore(table);
                 let req = store.clear();
                 req.onerror = ev => {
-                    throw "Drop fail! " + ev.target.error.message;
+                    db.close();
+                    callBack({result: false, message: ev.target.error.message});
                 };
                 req.onsuccess  = ev => {
-                    callBack('Drop done!');
                     db.close();
+                    callBack({result: true, message: 'Drop done!'});
                 };
             } catch (error) {
                 db.close();
-                throw "Drop fail! " + error.message;
+                callBack({result: false, message: error.message});    
             }
         };        
     }
