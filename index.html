@@ -19,9 +19,6 @@
     <script src="jsDB.js"></script>
     <script>
 
-var obj = {name: "Jeeva", age: "22", gender: "Male"}
-console.log(Object.keys(obj))
-
 
 const db = new jsDB({name: 'MyDB', version: 1, 
     tables: [{name: 'Usuarios', options: {keyPath : 'ssn', autoIncrement: true}, 
@@ -34,40 +31,45 @@ const db = new jsDB({name: 'MyDB', version: 1,
                       {name: 'Name', autoIncrement: false, unique: false }]}
             ]});
 
-console.log(db.Connected());
+console.log('pagina',db.Connected());
 
 db.Insert('Usuarios', data = [
-    {Name: 'Rapaza', Email: 'rapaza@example.com', Id: 1},
     {Name: 'Dinoa', Email: 'dinoa@example.com', Id: 0},
-    {Name: 'Rapaza10', Email: 'dinoa1@example.com', Id: 11},
+    {Name: 'Rapaza', Email: 'rapaza@example.com', Id: 1},
+    {Name: 'Rapaza10', Email: 'dinoa1@example.com', Id: 2},
 ], function (result) {
-    console.log(result);   
+    console.log('pagina',result);   
 });
 
-db.Update('Usuarios', data = [
-    {Name: 'Rapaza10', ssn: 57, Id: 10},
-    {Name: 'Rapaza10', ssn: 13, basura: 'algo', Id: 2},
-    {Name: 'Rapaza11', ssn: 58, Id: 3},
-    {Name: 'Dinoa1', Email: 'dinoa1@example.com', ssn: 59, Id: 4}
-], function (result) {
-    console.log(result);   
-});
 setTimeout(() => {
     
+    db.Update('Usuarios', data = [
+        {Name: 'Rapaza10', ssn: 1, Id: 3},
+        {ssn: 2, basura: 'algo', Id: 4},
+        {Name: 'Rapaza11', ssn: 58, Id: 5},
+        {Name: 'Dinoa1', Email: 'dinoa1@example.com', ssn: 3, Id: 6}
+    ], function (result) {
+        console.log('pagina',result);   
+    });
+}, 2000);
 
-    db.Select('Usuarios', function (result){
-        console.log('table',result);  
-    });    
-    db.SelectId('Usuarios', 2, function (result){
-        console.log('by id 2',result);  
-    });    
-    db.SelectId('Usuarios', 10, function (result){
-        console.log('by id 10',result);  
-    });  
-    db.SelectWhere('Usuarios', 'Email', 'rapaza@example.com', function (result){
-        console.log('by id rapaza@example.com',result);  
-    });  
-}, 1000);
+
+// setTimeout(() => {
+    
+
+//     db.Select('Usuarios', function (result){
+//         console.log('table',result);  
+//     });    
+//     db.SelectId('Usuarios', 2, function (result){
+//         console.log('by id 2',result);  
+//     });    
+//     db.SelectId('Usuarios', 10, function (result){
+//         console.log('by id 10',result);  
+//     });  
+//     db.SelectWhere('Usuarios', 'Email', 'rapaza@example.com', function (result){
+//         console.log('by id rapaza@example.com',result);  
+//     });  
+// }, 1000);
     </script>
 
 </body>
