@@ -3,7 +3,7 @@ class jsDB{
     #DB_VERSION = 1;        //db version
     #MODELS;                //Table model definitions
     constructor (model){        
-        if (!window.indexedDB) {
+        if (!this.#OpenDB()) {
             throw "IndexedDB not compatible!"
         }
         else {
@@ -11,7 +11,7 @@ class jsDB{
                 this.#DB_NAME = model.name;
                 this.#DB_VERSION = model.version;
                 this.#MODELS  = model.tables;            
-                let dbconnect = window.indexedDB.open(this.#DB_NAME, this.#DB_VERSION);
+                let dbconnect = this.#OpenDB().open(this.#DB_NAME, this.#DB_VERSION);
                 dbconnect.onblocked = ev => {       
                     // If some other tab is loaded with the database, then it needs to be closed
                     // before we can proceed.
@@ -68,6 +68,17 @@ class jsDB{
                 }
             }
             else throw "Please provide db model {name: 'MyDB', version: 1, tables: [{name: 'Table1', options: {keyPath : 'Id', autoIncrement: true/false}, columns: [{name: 'ColumnName', keyPath: true/false, autoIncrement: true/false, unique: true/false }]}]}"
+        }
+    }
+    /**
+     * Open a indexedDb with all the compatibilities from the browsers
+     */
+    #OpenDB(){
+        try {
+            let dbconnect = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.OIndexedDB || window.msIndexedDB, IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.OIDBTransaction || window.msIDBTransaction;
+            return dbconnect;            
+        } catch (error) {
+            throw this.#SetResponse(false, error.message);
         }
     }    
     /**
@@ -200,7 +211,7 @@ class jsDB{
      */   
     Select(table, callBack) {
         let context = this;
-        let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
+        let dbconnect = context.#OpenDB().open(context.#DB_NAME, context.#DB_VERSION);
         dbconnect.onsuccess = function() {
             let db = this.result;
             try {
@@ -231,7 +242,7 @@ class jsDB{
      */
     SelectId(table, id, callBack) {
         let context = this;
-        let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
+        let dbconnect = context.#OpenDB().open(context.#DB_NAME, context.#DB_VERSION);
         dbconnect.onsuccess = function() {
             let db = this.result;
             try {
@@ -267,7 +278,7 @@ class jsDB{
      */
     SelectWhere(table, column, value, callBack) {
         let context = this;
-        let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
+        let dbconnect = context.#OpenDB().open(context.#DB_NAME, context.#DB_VERSION);
         dbconnect.onsuccess = function() {
             let db = this.result;
             try {
@@ -305,7 +316,7 @@ class jsDB{
         let context = this;
         context.#CheckModel(context.#MODELS.find(el=> el.name = table), data, false, callBack, function (obj) {
             if (obj){
-                let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
+                let dbconnect = context.#OpenDB().open(context.#DB_NAME, context.#DB_VERSION);
                 dbconnect.onsuccess = function() {
                     let db = this.result;
                     try {
@@ -344,7 +355,7 @@ class jsDB{
         let context = this;
         context.#CheckModel(context.#MODELS.find(el=> el.name = table), data, true, callBack, function (obj) {
             if (obj){
-                let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
+                let dbconnect = context.#OpenDB().open(context.#DB_NAME, context.#DB_VERSION);
                 dbconnect.onsuccess = function() {
                     let db = this.result;
                     try {
@@ -381,7 +392,7 @@ class jsDB{
      */
     Delete(table, id, callBack){
         let context = this;
-        let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
+        let dbconnect = context.#OpenDB().open(context.#DB_NAME, context.#DB_VERSION);
         dbconnect.onsuccess = function() {
             let db = this.result;
             try {
@@ -411,7 +422,7 @@ class jsDB{
      */
     Drop(table, callBack){
         let context = this;
-        let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
+        let dbconnect = context.#OpenDB().open(context.#DB_NAME, context.#DB_VERSION);
         dbconnect.onsuccess = function() {
             let db = this.result;
             try {
