@@ -225,7 +225,8 @@ class jsDB{
                 };                          
                 request.onsuccess = () => {
                     db.close();
-                    if (callBack) callBack(request.result)
+                    if (callBack) callBack(request.result);
+                    else throw "Not callback action send";
                 };
             } catch (error) {
                 db.close();
@@ -255,12 +256,9 @@ class jsDB{
                     else throw ev.target.error.message; 
                 };
                 request.onsuccess = function() {
-                    if (this.result) {
-                        if (callBack) callBack(this.result);
-                    } else {
-                        if (callBack) callBack(null);
-                    }
                     db.close();
+                    if (callBack) callBack(this.result);
+                    else throw "Not callback action send";                    
                 }                
             } catch (error) {
                 db.close();
@@ -292,13 +290,10 @@ class jsDB{
                     else throw ev.target.error.message; 
                 };
                 request.onsuccess = function() {
-                    if (this.result) {
-                        if (callBack) callBack(this.result);
-                    } else {
-                        if (callBack) callBack(null);
-                    }
                     db.close();
-                }                
+                    if (callBack) callBack(this.result);
+                    else throw "Not callback action send";
+                }                    
             } catch (error) {
                 db.close(); 
                 if (callBack) callBack(context.#SetResponse(false, error.message));   
