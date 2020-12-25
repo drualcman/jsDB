@@ -8,9 +8,9 @@ class jsDB{
         }
         else {
             if (model.name){    
-                this.#MODELS  = model.tables;            
                 this.#DB_NAME = model.name;
                 this.#DB_VERSION = model.version;
+                this.#MODELS  = model.tables;            
                 let dbconnect = window.indexedDB.open(this.#DB_NAME, this.#DB_VERSION);
                 dbconnect.onblocked = ev => {       
                     // If some other tab is loaded with the database, then it needs to be closed
@@ -58,7 +58,7 @@ class jsDB{
                             }
                         }
                     }
-                    else throw "No table defined.";
+                    else throw "No tables defined.";
                 };
                 dbconnect.onerror = e => {
                     throw e.target.error.message;  
@@ -69,8 +69,13 @@ class jsDB{
             }
             else throw "Please provide db model {name: 'MyDB', version: 1, tables: [{name: 'Table1', options: {keyPath : 'Id', autoIncrement: true/false}, columns: [{name: 'ColumnName', keyPath: true/false, autoIncrement: true/false, unique: true/false }]}]}"
         }
-    }         
-    #SetResult(r, m) {    
+    }    
+    /**
+     * Return a JSON with {result: true/false, message: "message to show to the user"}
+     * @param {bool} r 
+     * @param {string} m message to show
+     */     
+    #SetResponse(r, m) {    
         return {result: r, message: m};
     }  
     /**
@@ -116,12 +121,13 @@ class jsDB{
     /**
      * Check if the data send match with the table definition
      * @param {object} model 
-     * @param {JSON} d 
+     * @param {JSON} d data to check with the model
      * @param {bool} keypath forse to have a keypath on the default json objet
-     * @param {function} callBack 
-     * @param {function} method 
+     * @param {function} callBack function to receive the error directly
+     * @param {function} method function sender
      */
-    #CheckTable(model, d, keypath, callBack, method){        
+    #CheckModel(model, d, keypath, callBack, method){  
+        let context = this;      
         if (model){
             let canContinue;
             let defaultObj = '{';       //to create a default json for the table
@@ -129,11 +135,11 @@ class jsDB{
             //check primary key
             if (model.options.keyPath && model.options.autoIncrement && model.options.autoIncrement == false){
                 //have a primary key required
-                if (this.#HasKeyPath(d, model.options.keyPath)) canContinue = true;
+                if (context.#HasKeyPath(d, model.options.keyPath)) canContinue = true;
                 else{
                     if (keypath) defaultObj += '"' + model.options.keyPath + '": null,';
                     canContinue = false;                
-                    if (callBack) callBack(this.#SetResult(false, model.options.keyPath + " is required and can't be found."));
+                    if (callBack) callBack(context.#SetResponse(false, model.options.keyPath + " is required and can't be found."));
                 } 
             }    
             else {
@@ -151,25 +157,24 @@ class jsDB{
                 defaultObj = defaultObj.substring(0,defaultObj.length-1);
                 defaultObj += '}';
                 let obj = JSON.parse(defaultObj);
-                let sender = this;
                 for (const key in d) {
                     if (Object.hasOwnProperty.call(d, key)) {
                         const element = d[key];                        
                         //recovery the original object to fill all the data must be updated
                         if (element[model.options.keyPath]){
-                            sender.SelectId(model.name, element[model.options.keyPath], function (result) {
+                            context.SelectId(model.name, element[model.options.keyPath], function (result) {
                                 if (result){
-                                    let original = sender.#MergeObjects(obj, result);
-                                    let send = sender.#MergeObjects(original, element);
+                                    let original = context.#MergeObjects(obj, result);
+                                    let send = context.#MergeObjects(original, element);
                                     data.push(send);
                                 }
                                 else {
-                                    data.push(sender.#MergeObjects(obj, element));
+                                    data.push(context.#MergeObjects(obj, element));
                                 }
                             });
                         }
                         else {
-                            data.push(sender.#MergeObjects(obj, element));
+                            data.push(context.#MergeObjects(obj, element));
                         }
                     }
                 }
@@ -181,15 +186,21 @@ class jsDB{
             else method(null);
         }
         else {
-            if (callBack) callBack(this.#SetResult(false, "Model can't be null."));
-            return null;
+            if (callBack) callBack(context.#SetResponse(false, "Model can't be null."));
+            throw "Model can't be null.";
         }
     }
     Connected(){
         return 'Connected to ' + this.#DB_NAME + ' with version ' + this.#DB_VERSION;
-    }   
+    }
+    /**
+     * Request all data from a table name. Return the data or JSON response
+     * @param {string} table table name to request the data
+     * @param {function} callBack function to receive the result.
+     */   
     Select(table, callBack) {
-        let dbconnect = window.indexedDB.open(this.#DB_NAME, this.#DB_VERSION);
+        let context = this;
+        let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
         dbconnect.onsuccess = function() {
             let db = this.result;
             try {
@@ -198,20 +209,29 @@ class jsDB{
                 let request = store.getAll();
                 request.onerror = ev => {
                     db.close();
-                    throw "Request fail! " + ev.target.error.message;
+                    if (callBack) callBack(context.#SetResponse(false, ev.target.error.message));
+                    else throw ev.target.error.message; 
                 };                          
                 request.onsuccess = () => {
-                    if (callBack) callBack(request.result)
                     db.close();
+                    if (callBack) callBack(request.result)
                 };
             } catch (error) {
                 db.close();
-                throw "Select fail! " + error.message;                  
+                if (callBack) callBack(context.#SetResponse(false, error.message));   
+                else throw error.message;                  
             }
         }
     }
+    /**
+     * Request data from a table name with the keyPath with a value. Return the data or JSON response
+     * @param {string} table table name
+     * @param {any} id id value
+     * @param {function} callBack function to receive the data
+     */
     SelectId(table, id, callBack) {
-        let dbconnect = window.indexedDB.open(this.#DB_NAME, this.#DB_VERSION);
+        let context = this;
+        let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
         dbconnect.onsuccess = function() {
             let db = this.result;
             try {
@@ -220,7 +240,8 @@ class jsDB{
                 let request = store.get(id);
                 request.onerror = ev => {
                     db.close();
-                    throw "Request fail! " + ev.target.error.message;
+                    if (callBack) callBack(context.#SetResponse(false, ev.target.error.message));
+                    else throw ev.target.error.message; 
                 };
                 request.onsuccess = function() {
                     if (this.result) {
@@ -232,12 +253,21 @@ class jsDB{
                 }                
             } catch (error) {
                 db.close();
-                throw "SelectById fail! " + error.message;                  
+                if (callBack) callBack(context.#SetResponse(false, error.message));   
+                else throw error.message;                   
             }
         }
     }   
+    /**
+     * Request data from a table name filtered by column name and value. Return the data or JSON response
+     * @param {string} table table name
+     * @param {string} column column name to filter
+     * @param {any} value value for the filter
+     * @param {function} callBack function to receive the data
+     */
     SelectWhere(table, column, value, callBack) {
-        let dbconnect = window.indexedDB.open(this.#DB_NAME, this.#DB_VERSION);
+        let context = this;
+        let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
         dbconnect.onsuccess = function() {
             let db = this.result;
             try {
@@ -247,7 +277,8 @@ class jsDB{
                 let request = index.get(value);
                 request.onerror = ev => {
                     db.close();
-                    throw "Request fail! " + ev.target.error.message;
+                    if (callBack) callBack(context.#SetResponse(false, ev.target.error.message));
+                    else throw ev.target.error.message; 
                 };
                 request.onsuccess = function() {
                     if (this.result) {
@@ -258,17 +289,23 @@ class jsDB{
                     db.close();
                 }                
             } catch (error) {
-                db.close();
-                throw "SelectByColumn fail! " + error.message;                 
+                db.close(); 
+                if (callBack) callBack(context.#SetResponse(false, error.message));   
+                else throw error.message;                
             }
         }
     }
+    /**
+     * Insert data into a table. Alway return a JSON response
+     * @param {string} table table name
+     * @param {JSON} data data with the model format to insert
+     * @param {function} callBack function to receive result
+     */
     Insert(table, data, callBack){
-        let dbName = this.#DB_NAME;
-        let dbVersion = this.#DB_VERSION;
-        this.#CheckTable(this.#MODELS.find(el=> el.name = table), data, false, callBack, function (obj) {
+        let context = this;
+        context.#CheckModel(context.#MODELS.find(el=> el.name = table), data, false, callBack, function (obj) {
             if (obj){
-                let dbconnect = window.indexedDB.open(dbName, dbVersion);
+                let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
                 dbconnect.onsuccess = function() {
                     let db = this.result;
                     try {
@@ -277,49 +314,74 @@ class jsDB{
                         obj.forEach(el => store.add(el));
                         transaction.onerror = ev => {                    
                             db.close();
-                            if (callBack) callBack({result: false, message: ev.target.error.message});
+                            if (callBack) callBack(context.#SetResponse(false, ev.target.error.message));
+                            else throw ev.target.error.message;           
                         };
-                        transaction.oncomplete = ev => {                    
+                        transaction.oncomplete = () => {                    
                             db.close();
-                            if (callBack) callBack({result: true, message: 'Insert done!'});
+                            if (callBack) callBack(context.#SetResponse(true, 'Insert done!'));
                         };                
                     } catch (error) {
                         db.close();
-                        if (callBack) callBack({result: false, message: error.message});         
+                        if (callBack) callBack(context.#SetResponse(false, error.message));   
+                        else throw error.message;                
                     }
                 };   
             }
-            else callBack(this.#SetResult(false, responseMessage));
+            else {
+                if (callBack) callBack(context.#SetResponse(false, "Model can't be null."));
+                else throw "Model can't be null."
+            }
         });
     } 
+    /**
+     * Update data into the table. The data always must be content all the columns, if not the function retreive the actual data to keep always same data into a table. Alway return a JSON response
+     * @param {string} table table name
+     * @param {JSON} data data with the model format to update
+     * @param {dunction} callBack function to receive the result
+     */
     Update(table, data, callBack){
-        let sender = this;
-        sender.#CheckTable(sender.#MODELS.find(el=> el.name = table), data, true, callBack, function (obj) {
+        let context = this;
+        context.#CheckModel(context.#MODELS.find(el=> el.name = table), data, true, callBack, function (obj) {
             if (obj){
-                let dbconnect = window.indexedDB.open(sender.#DB_NAME, sender.#DB_VERSION);
+                let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
                 dbconnect.onsuccess = function() {
                     let db = this.result;
                     try {
                         let transaction = db.transaction(table, 'readwrite');
                         let store = transaction.objectStore(table); 
                         obj.forEach(el => store.put(el));
-                        transaction.onerror = ev => {
-                            if (callBack) callBack(sender.#SetResult(false, ev.target.error.message));
+                        transaction.onerror = ev => {         
+                            db.close();
+                            if (callBack) callBack(context.#SetResponse(false, ev.target.error.message));
+                            else throw ev.target.error.message;           
                         };
-                        transaction.oncomplete = ev => {
-                            if (callBack) callBack(sender.#SetResult(true,'Update done!'));
+                        transaction.oncomplete = () => {         
+                            db.close();
+                            if (callBack) callBack(context.#SetResponse(true,'Update done!'));
                         };         
                     } catch (error) { 
-                        if (callBack) callBack(sender.#SetResult(false,error.message));              
                         db.close();
+                        if (callBack) callBack(context.#SetResponse(false, error.message));   
+                        else throw error.message;          
                     }
                 };  
             }
-            else callBack(sender.#SetResult(false, responseMessage));
+            else {
+                if (callBack) callBack(context.#SetResponse(false, "Model can't be null."));
+                else throw "Model can't be null."
+            }
         });
     }
+    /**
+     * Dete one row from a table. Alway return a JSON response
+     * @param {string} table table name
+     * @param {any} id value from the keypath
+     * @param {function} callBack Function to receive the result
+     */
     Delete(table, id, callBack){
-        let dbconnect = window.indexedDB.open(this.#DB_NAME, this.#DB_VERSION);
+        let context = this;
+        let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
         dbconnect.onsuccess = function() {
             let db = this.result;
             try {
@@ -329,6 +391,7 @@ class jsDB{
                 transaction.onerror = ev => {
                     db.close();
                     if (callBack) callBack({result: false, message: ev.target.error.message});
+                    else throw ev.target.error.message;           
                 };
                 transaction.onsuccess  = () => {
                     db.close();
@@ -336,12 +399,19 @@ class jsDB{
                 };                
             } catch (error) {
                 db.close();
-                if (callBack) callBack({result: false, message: error.message});                 
+                if (callBack) callBack(context.#SetResponse(false, error.message));   
+                else throw error.message;                        
             }
         };        
     }
+    /**
+     * Drop a table. Alway return a JSON response
+     * @param {string} table table name
+     * @param {function} callBack function to receive the result
+     */
     Drop(table, callBack){
-        let dbconnect = window.indexedDB.open(this.#DB_NAME, this.#DB_VERSION);
+        let context = this;
+        let dbconnect = window.indexedDB.open(context.#DB_NAME, context.#DB_VERSION);
         dbconnect.onsuccess = function() {
             let db = this.result;
             try {
@@ -351,6 +421,7 @@ class jsDB{
                 req.onerror = ev => {
                     db.close();
                     if (callBack) callBack({result: false, message: ev.target.error.message});
+                    else throw ev.target.error.message;           
                 };
                 req.onsuccess  = () => {
                     db.close();
@@ -358,7 +429,8 @@ class jsDB{
                 };
             } catch (error) {
                 db.close();
-                if (callBack) callBack({result: false, message: error.message});    
+                if (callBack) callBack(context.#SetResponse(false, error.message));   
+                else throw error.message;          
             }
         };        
     }
