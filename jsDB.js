@@ -1,12 +1,14 @@
 class jsDB{
-    #DB_NAME = 'MyDB';
-    #DB_VERSION = 1;    
+    #DB_NAME = 'MyDB';      //db name
+    #DB_VERSION = 1;        //db version
+    #MODELS;                //Table model definitions
     constructor (model){        
         if (!window.indexedDB) {
             throw "IndexedDB not compatible!"
         }
         else {
-            if (model.name){                
+            if (model.name){    
+                this.#MODELS  = model.tables;            
                 this.#DB_NAME = model.name;
                 this.#DB_VERSION = model.version;
                 let dbconnect = window.indexedDB.open(this.#DB_NAME, this.#DB_VERSION);
@@ -68,6 +70,88 @@ class jsDB{
             }
             else throw "Please provide db model {name: 'MyDB', version: 1, tables: [{name: 'Table1', options: {keyPath : 'Id', autoIncrement: true/false}, columns: [{name: 'ColumnName', keyPath: true/false, autoIncrement: true/false, unique: true/false }]}]}"
         }
+    }         
+    static #SetResult(r, m) {    
+        return {result: r, message: m};
+    }  
+    /**
+     * Return true or false if the key exist into the object send
+     * @param {object} obj 
+     * @param {string} val 
+     */
+    static #getKeys(obj, val) {
+        let found = false;
+        for (const key in obj) {
+            if (Object.hasOwnProperty.call(obj, key)) {
+                const element = obj[key];
+                for (var i in element) {   
+                    if (i == val) found = true;
+                }
+            }
+        }        
+        return found;
+    } 
+    /**
+     * Merge all properties from 2 objects. Can't have object inside object.
+     * @param {object} obj1 
+     * @param {object} obj2 
+     */
+    static #MergeObjects(obj1, obj2) {
+        var obj3 = {};
+        for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
+        for (var attrname1 in obj2) { obj3[attrname1] = obj2[attrname1]; }
+        return obj3;
+    }
+    /**
+     * Check if the data send match with the table definition
+     * @param {object} model 
+     * @param {JSON} d 
+     * @param {function} callBack 
+     * @param {function} method 
+     */
+    static #CheckTable(model, d, callBack, method){        
+        if (model){
+            let canContinue;
+            let defaultObj = '{';       //to create a default json for the table
+            //compare object receive with table definition
+            //check primary key
+            if (model.options.keyPath && model.options.autoIncrement && model.options.autoIncrement == false){
+                //have a primary key required
+                defaultObj += '"' + model.options.keyPath + '": null,';
+                if (jsDB.#getKeys(d, model.options.keyPath)) canContinue = true;
+                else{
+                    canContinue = false;                
+                    if (callBack) callBack(jsDB.#SetResult(false, model.options.keyPath + " is required and can't be found."));
+                } 
+            }    
+            else {
+                canContinue = true;
+            }
+            //sure the objebt received have all the keys to send               
+            if (canContinue){
+                let data = [];
+                //create a default json object for the table
+                let c = model.columns.length;
+                for (let index = 0; index < c; index++) {
+                    defaultObj += '"' +model.columns[index].name + '": null,';
+                }
+                defaultObj = defaultObj.substring(0,defaultObj.length-1);
+                defaultObj += '}';
+                let obj = JSON.parse(defaultObj);
+                for (const key in d) {
+                    if (Object.hasOwnProperty.call(d, key)) {
+                        const element = d[key];
+                        data.push(jsDB.#MergeObjects(obj, element))
+                    }
+                }
+                method(data);
+            }
+            else method(null);
+        }
+        else {
+            if (callBack) callBack(jsDB.#SetResult(false, "Model can't be null."));
+            return null;
+        }
     }
     Connected(){
         return 'Connected to ' + this.#DB_NAME + ' with version ' + this.#DB_VERSION;
@@ -81,7 +165,7 @@ class jsDB{
                 let store = transaction.objectStore(table);  
                 let request = store.getAll();
                 request.onsuccess = () => {
-                    callBack(request.result)
+                    if (callBack) callBack(request.result)
                     db.close();
                 };
                 request.onerror = ev => {
@@ -93,7 +177,7 @@ class jsDB{
             }
         }
     }
-    SelectById(table, id, callBack) {
+    SelectId(table, id, callBack) {
         let dbconnect = window.indexedDB.open(this.#DB_NAME, this.#DB_VERSION);
         dbconnect.onsuccess = function() {
             let db = this.result;
@@ -106,9 +190,9 @@ class jsDB{
                 };
                 request.onsuccess = function() {
                     if (this.result) {
-                        callBack(this.result);
+                        if (callBack) callBack(this.result);
                     } else {
-                        callBack(null);
+                        if (callBack) callBack(null);
                     }
                     db.close();
                 }                
@@ -118,7 +202,7 @@ class jsDB{
             }
         }
     }   
-    SelectByColumn(table, column, value, callBack) {
+    SelectWhere(table, column, value, callBack) {
         let dbconnect = window.indexedDB.open(this.#DB_NAME, this.#DB_VERSION);
         dbconnect.onsuccess = function() {
             let db = this.result;
@@ -132,9 +216,9 @@ class jsDB{
                 };
                 request.onsuccess = function() {
                     if (this.result) {
-                        callBack(this.result);
+                        if (callBack) callBack(this.result);
                     } else {
-                        callBack(null);
+                        if (callBack) callBack(null);
                     }
                     db.close();
                 }                
@@ -145,48 +229,63 @@ class jsDB{
         }
     }
     Insert(table, data, callBack){
-        let dbconnect = window.indexedDB.open(this.#DB_NAME, this.#DB_VERSION);
-        dbconnect.onsuccess = function() {
-            let db = this.result;
-            try {
-                let transaction = db.transaction(table, 'readwrite');
-                let store = transaction.objectStore(table);                
-                data.forEach(el => store.add(el));
-                transaction.onerror = ev => {                    
-                    db.close();
-                    callBack({result: false, message: ev.target.error.message});
-                };
-                transaction.oncomplete = ev => {                    
-                    db.close();
-                    callBack({result: true, message: 'Insert done!'});
-                };                
-            } catch (error) {
-                db.close();
-                callBack({result: false, message: error.message});         
+        let dbName = this.#DB_NAME;
+        let dbVersion = this.#DB_VERSION;
+        jsDB.#CheckTable(this.#MODELS.find(el=> el.name = table), data, callBack, function (obj) {
+            console.log(obj);
+            if (obj){
+                let dbconnect = window.indexedDB.open(dbName, dbVersion);
+                dbconnect.onsuccess = function() {
+                    let db = this.result;
+                    try {
+                        let transaction = db.transaction(table, 'readwrite');
+                        let store = transaction.objectStore(table);                
+                        obj.forEach(el => store.add(el));
+                        transaction.onerror = ev => {                    
+                            db.close();
+                            if (callBack) callBack({result: false, message: ev.target.error.message});
+                        };
+                        transaction.oncomplete = ev => {                    
+                            db.close();
+                            if (callBack) callBack({result: true, message: 'Insert done!'});
+                        };                
+                    } catch (error) {
+                        db.close();
+                        if (callBack) callBack({result: false, message: error.message});         
+                    }
+                };   
             }
-        };        
-    }    
+            else callBack(jsDB.#SetResult(false, responseMessage));
+        });
+    } 
     Update(table, data, callBack){
-        let dbconnect = window.indexedDB.open(this.#DB_NAME, this.#DB_VERSION);
-        dbconnect.onsuccess = function() {
-            let db = this.result;
-            try {
-                let transaction = db.transaction(table, 'readwrite');
-                let store = transaction.objectStore(table);                
-                data.forEach(el => store.put(el));
-                transaction.onerror = ev => {
-                    db.close();
-                    callBack({result: false, message: ev.target.error.message});
-                };
-                transaction.oncomplete = ev => {
-                    db.close();
-                    callBack({result: true, message: 'Update done!'});
-                };                
-            } catch (error) { 
-                db.close();
-                callBack({result: false, message: error.message});                 
+        let dbName = this.#DB_NAME;
+        let dbVersion = this.#DB_VERSION;
+        jsDB.#CheckTable(this.#MODELS.find(el=> el.name = table), data, callBack, function (obj) {
+            if (obj){
+                let dbconnect = window.indexedDB.open(dbName, dbVersion);
+                dbconnect.onsuccess = function() {
+                    let db = this.result;
+                    try {
+                        let transaction = db.transaction(table, 'readwrite');
+                        let store = transaction.objectStore(table);                
+                        obj.forEach(el => store.put(el));
+                        transaction.onerror = ev => {
+                            if (callBack) callBack(jsDB.#SetResult(false, ev.target.error.message));
+                            db.close();                    
+                        };
+                        transaction.oncomplete = ev => {
+                            if (callBack) callBack(jsDB.#SetResult(true,'Update done!'));
+                            db.close();                        
+                        };                
+                    } catch (error) { 
+                        if (callBack) callBack(jsDB.#SetResult(false,error.message));              
+                        db.close();
+                    }
+                };  
             }
-        };        
+            else callBack(jsDB.#SetResult(false, responseMessage));
+        });
     }
     Delete(table, id, callBack){
         let dbconnect = window.indexedDB.open(this.#DB_NAME, this.#DB_VERSION);
@@ -198,15 +297,15 @@ class jsDB{
                 store.delete(id);
                 transaction.onerror = ev => {
                     db.close();
-                    callBack({result: false, message: ev.target.error.message});
+                    if (callBack) callBack({result: false, message: ev.target.error.message});
                 };
-                transaction.onsuccess  = ev => {
+                transaction.onsuccess  = () => {
                     db.close();
-                    callBack({result: true, message: 'Delete done!'});
+                    if (callBack) callBack({result: true, message: 'Delete done!'});
                 };                
             } catch (error) {
                 db.close();
-                callBack({result: false, message: error.message});                 
+                if (callBack) callBack({result: false, message: error.message});                 
             }
         };        
     }
@@ -220,17 +319,18 @@ class jsDB{
                 let req = store.clear();
                 req.onerror = ev => {
                     db.close();
-                    callBack({result: false, message: ev.target.error.message});
+                    if (callBack) callBack({result: false, message: ev.target.error.message});
                 };
-                req.onsuccess  = ev => {
+                req.onsuccess  = () => {
                     db.close();
-                    callBack({result: true, message: 'Drop done!'});
+                    if (callBack) callBack({result: true, message: 'Drop done!'});
                 };
             } catch (error) {
                 db.close();
-                callBack({result: false, message: error.message});    
+                if (callBack) callBack({result: false, message: error.message});    
             }
         };        
     }
 }
+
 

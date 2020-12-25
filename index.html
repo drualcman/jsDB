@@ -18,6 +18,11 @@
 
     <script src="jsDB.js"></script>
     <script>
+
+var obj = {name: "Jeeva", age: "22", gender: "Male"}
+console.log(Object.keys(obj))
+
+
 const db = new jsDB({name: 'MyDB', version: 1, 
     tables: [{name: 'Usuarios', options: {keyPath : 'ssn', autoIncrement: true}, 
             columns: [{name: 'Id', keyPath: true, autoIncrement: false, unique: true }, 
@@ -32,29 +37,37 @@ const db = new jsDB({name: 'MyDB', version: 1,
 console.log(db.Connected());
 
 db.Insert('Usuarios', data = [
-    {Name: 'Rapaza', Email: 'rapaza@example.com'},
-    {Name: 'Dinoa', Email: 'dinoa@example.com'}
+    {Name: 'Rapaza', Email: 'rapaza@example.com', Id: 1},
+    {Name: 'Dinoa', Email: 'dinoa@example.com', Id: 0},
+    {Name: 'Rapaza10', Email: 'dinoa1@example.com', Id: 11},
 ], function (result) {
     console.log(result);   
 });
+
 db.Update('Usuarios', data = [
-    {Name: 'Rapaza10', ssn: 51},
-    {Name: 'Dinoa1', Email: 'dinoa1@example.com', ssn: 52}
+    {Name: 'Rapaza10', ssn: 57, Id: 10},
+    {Name: 'Rapaza10', ssn: 13, basura: 'algo', Id: 2},
+    {Name: 'Rapaza11', ssn: 58, Id: 3},
+    {Name: 'Dinoa1', Email: 'dinoa1@example.com', ssn: 59, Id: 4}
 ], function (result) {
     console.log(result);   
 });
+setTimeout(() => {
+    
+
     db.Select('Usuarios', function (result){
         console.log('table',result);  
     });    
-    db.SelectById('Usuarios', 2, function (result){
+    db.SelectId('Usuarios', 2, function (result){
         console.log('by id 2',result);  
     });    
-    db.SelectById('Usuarios', 10, function (result){
+    db.SelectId('Usuarios', 10, function (result){
         console.log('by id 10',result);  
     });  
-    db.SelectByColumn('Usuarios', 'Email', 'rapaza@example.com', function (result){
+    db.SelectWhere('Usuarios', 'Email', 'rapaza@example.com', function (result){
         console.log('by id rapaza@example.com',result);  
-    });          
+    });  
+}, 1000);
     </script>
 
 </body>
