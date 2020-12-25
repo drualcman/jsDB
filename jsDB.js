@@ -445,6 +445,28 @@ class jsDB{
             }
         };        
     }
+    /**
+     * To store files into a db for compatibility with most of the browsers
+     * @param {bytes} buffer file buffer
+     * @param {string} type file type
+     */
+    #arrayBufferToBlob(buffer, type) {
+        return new Blob([buffer], {type: type});
+    }
+    /**
+     * Get a file from a DB for compatibility with most of the browsers
+     * @param {bytes} blob arraybuffer byte to retrive
+     */
+    #blobToArrayBuffer(blob) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.addEventListener('loadend', (e) => {
+            resolve(reader.result);
+          });
+          reader.addEventListener('error', reject);
+          reader.readAsArrayBuffer(blob);
+        });
+      }
 }
 
 
