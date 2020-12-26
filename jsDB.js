@@ -344,7 +344,7 @@ class jsDB{
      * Update data into the table. The data always must be content all the columns, if not the function retreive the actual data to keep always same data into a table. Alway return a JSON response
      * @param {string} table table name
      * @param {JSON} data data with the model format to update
-     * @param {dunction} callBack function to receive the result
+     * @param {function} callBack function to receive the result
      */
     Update(table, data, callBack){
         let context = this;

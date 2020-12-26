@@ -17,21 +17,30 @@
     </div>
 
     <script src="jsDB.js"></script>
+    <script src="MyDbJS.js"></script>
     <script>
 
+var model = {
+    name: 'MyDB', version: 1,
+    tables: [{
+        name: 'Usuarios', options: { keyPath: 'ssn', autoIncrement: true },
+        columns: [{ name: 'Id', keyPath: true, autoIncrement: false, unique: true },
+        { name: 'Email', keyPath: true, autoIncrement: false, unique: true },
+        { name: 'Name', autoIncrement: false, unique: false }]
+    },
+    {
+        name: 'Ministros', options: { keyPath: 'ssn', autoIncrement: true },
+        columns: [{ name: 'Id', keyPath: true, autoIncrement: false, unique: true },
+        { name: 'Email', keyPath: true, autoIncrement: false, unique: true },
+        { name: 'Name', autoIncrement: false, unique: false }]
+    }
+    ]
+};
 
-const db = new jsDB({name: 'MyDB', version: 1, 
-    tables: [{name: 'Usuarios', options: {keyPath : 'ssn', autoIncrement: true}, 
-            columns: [{name: 'Id', keyPath: true, autoIncrement: false, unique: true }, 
-                      {name: 'Email', keyPath: true, autoIncrement: false, unique: true }, 
-                      {name: 'Name', autoIncrement: false, unique: false }]},
-            {name: 'Ministros', options: {keyPath : 'ssn', autoIncrement: true}, 
-            columns: [{name: 'Id', keyPath: true, autoIncrement: false, unique: true }, 
-                      {name: 'Email', keyPath: true, autoIncrement: false, unique: true }, 
-                      {name: 'Name', autoIncrement: false, unique: false }]}
-            ]});
+window.MyDb.Init(model);
 
-console.log('pagina',db.Connected());
+
+console.log('pagina',MyDb.Connected());
 
 // db.Insert('Usuarios', data = [
 //     {Name: 'Dinoa', Email: 'dinoa@example.com', Id: 0},
@@ -56,19 +65,20 @@ console.log('pagina',db.Connected());
 
 setTimeout(() => {
     
-
-    db.Select('Usuarios', function (result){
-        console.log('table',result);  
-    });    
-    db.SelectId('Usuarios', 2, function (result){
+    MyDb.Select('Usuarios', function (result){
+            console.log('table',result);  
+        });
+    MyDb.SelectId('Usuarios', 2, function (result){
         console.log('by id 2',result);  
     });    
-    db.SelectId('Usuarios', 1, function (result){
+    MyDb.SelectId('Usuarios', 1, function (result){
         console.log('by id 10',result);  
     });  
-    db.SelectWhere('Usuarios', 'Email', 'rapaza@example.com', function (result){
+    MyDb.SelectWhere('Usuarios', 'Email', 'rapaza@example.com', function (result){
         console.log('by Email rapaza@example.com',result);  
-    });  
+    }); 
+
+ 
 }, 1000);
     </script>
 
