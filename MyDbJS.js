@@ -1,6 +1,6 @@
-var db;
 
 (function () {
+    var db;
     window.MyDb = {
         /**
          * Initializing instance of a DB with a model send
