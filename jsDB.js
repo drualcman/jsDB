@@ -64,7 +64,7 @@ class jsDB{
                     throw e.target.error.message;  
                 } 
                 dbconnect.onsuccess = () => {
-                    console.info('DB ' + model.name + ' open DONE');
+                    return;
                 }
             }
             else throw "Please provide db model {name: 'MyDB', version: 1, tables: [{name: 'Table1', options: {keyPath : 'Id', autoIncrement: true/false}, columns: [{name: 'ColumnName', keyPath: true/false, autoIncrement: true/false, unique: true/false }]}]}"
@@ -133,11 +133,11 @@ class jsDB{
      * Check if the data send match with the table definition
      * @param {object} model 
      * @param {JSON} d data to check with the model
-     * @param {bool} keypath forse to have a keypath on the default json objet
+     * @param {bool} keypath force to have a key path on the default json object
      * @param {function} callBack function to receive the error directly
      * @param {function} method function sender
      */
-    #CheckModel(model, d, keypath, callBack, method){  
+    #CheckModel(model, d, keypath, callBack, method) {  
         let context = this;      
         if (model){
             let canContinue;
@@ -158,7 +158,7 @@ class jsDB{
                 canContinue = true;
             }
             //sure the object received have all the keys to send               
-            if (canContinue){
+            if (canContinue) {
                 let data = [];
                 //create a default json object for the table
                 let c = model.columns.length;
@@ -170,17 +170,17 @@ class jsDB{
                 let obj = JSON.parse(defaultObj);
                 for (const key in d) {
                     if (Object.hasOwnProperty.call(d, key)) {
-                        const element = d[key];                        
+                        const element = d[key];      
                         //recovery the original object to fill all the data must be updated
-                        if (element[model.options.keyPath]){
+                        if (element[model.options.keyPath]) {
                             context.SelectId(model.name, element[model.options.keyPath], function (result) {
-                                if (result){
+                                if (result) {
                                     let original = context.#MergeObjects(obj, result);
-                                    let send = context.#MergeObjects(original, element);
+                                    let send = context.#MergeObjects(element, original);
                                     data.push(send);
                                 }
                                 else {
-                                    data.push(context.#MergeObjects(obj, element));
+                                    data.push(context.#MergeObjects(element, obj));
                                 }
                             });
                         }
@@ -201,7 +201,7 @@ class jsDB{
             throw "Model can't be null.";
         }
     }
-    Connected(){
+    Connected() {
         return 'Connected to ' + this.#DB_NAME + ' with version ' + this.#DB_VERSION;
     }
     /**
@@ -307,9 +307,9 @@ class jsDB{
      * @param {JSON} data data with the model format to insert
      * @param {function} callBack function to receive result
      */
-    Insert(table, data, callBack){
+    Insert(table, data, callBack) {
         let context = this;
-        context.#CheckModel(context.#MODELS.find(el=> el.name = table), data, false, callBack, function (obj) {
+        context.#CheckModel(context.#MODELS.find(el => el.name = table), data, false, callBack, function (obj) { 
             if (obj){
                 let dbconnect = context.#OpenDB().open(context.#DB_NAME, context.#DB_VERSION);
                 dbconnect.onsuccess = function() {
@@ -463,5 +463,3 @@ class jsDB{
         });
     }
 }
-
-
