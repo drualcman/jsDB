@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IndexedDb Testing</title>
     <base href="/" />
     <!-- Bulma -->
@@ -26,7 +26,8 @@ var model = {
         name: 'Usuarios', options: { keyPath: 'ssn', autoIncrement: true },
         columns: [{ name: 'Id', keyPath: true, autoIncrement: false, unique: true },
         { name: 'Email', keyPath: true, autoIncrement: false, unique: true },
-        { name: 'Name', autoIncrement: false, unique: false }]
+        { name: 'Name', autoIncrement: false, unique: false },
+        { name: 'Apellido', autoIncrement: false, unique: false }]
     },
     {
         name: 'Ministros', options: { keyPath: 'ssn', autoIncrement: true },
@@ -42,13 +43,39 @@ window.MyDb.Init(model);
 
 console.log('pagina',MyDb.Connected());
 
-// db.Insert('Usuarios', data = [
-//     {Name: 'Dinoa', Email: 'dinoa@example.com', Id: 0},
-//     {Name: 'Rapaza', Email: 'rapaza@example.com', Id: 1},
-//     {Name: 'Rapaza10', Email: 'dinoa1@example.com', Id: 2},
-// ], function (result) {
-//     console.log('pagina',result);   
-// });
+window.MyDb.Insert('Usuarios', data = [
+    {Name: 'Dinoa2', Email: 'dinsdf2222sdfsdoas@example.com', Id: 210},
+    {Name: 'Rapaza', Email: 'rapaza@example.com', Id: 1, Apellido: "otro"},
+    {Name: 'Rapaza10', Email: 'dinoa1@example.com', Id: 2}
+]).then(function (result){
+    console.log('insert',result);
+}).catch(err => console.error(err));
+
+window.MyDb.Update('Usuarios', data = [
+    {Name: 'Dinoa111', Email: 'dinoa11@example.com', Id: 5, ssn: 1},
+    {Name: 'Rapaza211', Email: 'rapazsdgsdga11@example.com', Id: 1, ssn: 2, Apellido: 'cagosgsgsgntoo'},
+    {Name: 'Rapaza11', Email: 'dinoa10@example.com', Id: 2, ssn: 3, Apellido: "ortsgsgega"}
+]).then(function (result){
+    console.log('update',result);
+}).catch(err => console.error(err));
+
+
+// window.MyDb.Update('Usuarios', data = [
+//     {Name: 'Dinoa13', Email: 'dinoa33@example.com', Id: 30, Apellido: "cano"},
+//     {Name: 'Rapaza13', Email: 'rapaza33@example.com', Id: 10},
+//     {Name: 'Rapaza13', Email: 'dinoa133@example.com', Id: 20}
+// ]).then(function (result){
+//     console.log('update',result);
+// }).catch(err => console.error(err));
+
+
+// window.MyDb.Insert('Usuarios', data = [
+//     {Name: 'Dinoa13', Email: 'dinoa33@example.com', Id: 30, Apellido: "cano"},
+//     {Name: 'Rapaza13', Email: 'rapaza33@example.com', Id: 10},
+//     {Name: 'Rapaza13', Email: 'dinoa133@example.com', Id: 20}
+// ]).then(function (result){
+//     console.log('update',result);
+// }).catch(err => console.error(err));
 
 // setTimeout(() => {
     
