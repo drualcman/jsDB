@@ -23,16 +23,16 @@
 var model = {
     name: 'MyDB', version: 1,
     tables: [{
-        name: 'Usuarios', options: { keyPath: 'ssn', autoIncrement: true },
-        columns: [{ name: 'Id', keyPath: true, autoIncrement: false, unique: true },
-        { name: 'Email', keyPath: true, autoIncrement: false, unique: true },
+        name: 'Usuarios', options: { keyPath: 'ssn', autoIncrement: true},
+        columns: [{ name: 'Id', keyPath: true, autoIncrement: true, unique: true },
+        { name: 'Email', keyPath: false, autoIncrement: false, unique: false },
         { name: 'Name', autoIncrement: false, unique: false },
         { name: 'Apellido', autoIncrement: false, unique: false }]
     },
     {
         name: 'Ministros', options: { keyPath: 'ssn', autoIncrement: true },
-        columns: [{ name: 'Id', keyPath: true, autoIncrement: false, unique: true },
-        { name: 'Email', keyPath: true, autoIncrement: false, unique: true },
+        columns: [{ name: 'Id', keyPath: true, autoIncrement: false, unique: false },
+        { name: 'Email', keyPath: true, autoIncrement: false, unique: false },
         { name: 'Name', autoIncrement: false, unique: false }]
     }
     ]
@@ -52,9 +52,9 @@ window.MyDb.Insert('Usuarios', data = [
 }).catch(err => console.error(err));
 
 window.MyDb.Update('Usuarios', data = [
-    {Name: 'Dinoa111', Email: 'dinoa11@example.com', Id: 5, ssn: 1},
-    {Name: 'Rapaza211', Email: 'rapazsdgsdga11@example.com', Id: 1, ssn: 2, Apellido: 'cagosgsgsgntoo'},
-    {Name: 'Rapaza11', Email: 'dinoa10@example.com', Id: 2, ssn: 3, Apellido: "ortsgsgega"}
+    {Name: 'Dinoa111', Email: 'dinoa11@example.com', Id: 0},
+    {Name: 'Rapaza211', Email: 'rapazsdgsdga11@example.com', Id: 1,  Apellido: 'cagosgsgsgntoo'},
+    {Name: 'Rapaza11', Email: 'dinoa10@example.com', Id: 2,  Apellido: "ortsgsgega"}
 ]).then(function (result){
     console.log('update',result);
 }).catch(err => console.error(err));

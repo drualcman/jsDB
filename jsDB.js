@@ -229,9 +229,9 @@ class jsDB {
                         db.close();
                         resolve(request.result);
                     };
-                } catch (error) {
+                } catch (e) {
                     db.close();
-                    error(context.#SetResponse(false, error.message));
+                    error(context.#SetResponse(false, e.message));
                 }
             }
         });
@@ -250,18 +250,18 @@ class jsDB {
                 try {
                     const transaction = db.transaction(table, 'readonly');
                     const store = transaction.objectStore(table);
-                    const request = store.get(id);
+                    const request = store.getAll(id);
                     request.onerror = ev => {
                         db.close();
                         error(context.#SetResponse(false, ev.target.error.message));
                     };
                     request.onsuccess = function () {
                         db.close();
-                        resolve(this.result);
+                        resolve(request.result);
                     }
-                } catch (error) {
+                } catch (e) {
                     db.close();
-                    error(context.#SetResponse(false, error.message));
+                    error(context.#SetResponse(false, e.message));
                 }
             }
         });
@@ -282,18 +282,18 @@ class jsDB {
                     const transaction = db.transaction(table, 'readonly');
                     const store = transaction.objectStore(table);
                     const index = store.index(column);
-                    const request = index.get(value);
+                    const request = index.getAll(value);
                     request.onerror = ev => {
                         db.close();
                         error(context.#SetResponse(false, ev.target.error.message));
                     };
                     request.onsuccess = function () {
                         db.close();
-                        resolve(this.result);
+                        resolve(request.result);
                     }
-                } catch (error) {
+                } catch (e) {
                     db.close();
-                    error(context.#SetResponse(false, error.message));
+                    error(context.#SetResponse(false, e.message));
                 }
             }
         });
@@ -442,9 +442,9 @@ class jsDB {
                         db.close();
                         resolve({ result: true, message: 'Delete done!' });
                     };
-                } catch (error) {
+                } catch (e) {
                     db.close();
-                    error(context.#SetResponse(false, error.message));
+                    error(context.#SetResponse(false, e.message));
                 }
             };
         });
@@ -471,9 +471,9 @@ class jsDB {
                         db.close();
                         resolve({ result: true, message: 'Drop done!' });
                     };
-                } catch (error) {
+                } catch (e) {
                     db.close();
-                    error(context.#SetResponse(false, error.message));
+                    error(context.#SetResponse(false, e.message));
                 }
             };
         });
