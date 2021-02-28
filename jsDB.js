@@ -151,7 +151,7 @@ class jsDB {
      */
     #GetDefault(table) {
         const context = this;
-        const model = context.#MODELS.find(el => el.name = table)
+        const model = context.#MODELS.find(el => el.name === table)
         if (model) {
             let defaultObj = '{';       //to create a default json for the table
             //compare object receive with table definition
@@ -322,7 +322,7 @@ class jsDB {
                     const store = transaction.objectStore(table);
                     const defaultModel = context.#GetDefault(table);
                     //get who is the keypath
-                    const model = context.#MODELS.find(el => el.name = table);
+                    const model = context.#MODELS.find(el => el.name === table);
                     let keyPath = model.options.keyPath;
                     if (!keyPath){
                         keyPath = 'ssnId';
@@ -370,7 +370,7 @@ class jsDB {
                     const transaction = db.transaction(table, 'readwrite');
                     const store = transaction.objectStore(table);                    
                     //get the keypath to retrieve the actual data must be updated
-                    const model = context.#MODELS.find(el => el.name = table);
+                    const model = context.#MODELS.find(el => el.name === table);
                     let keyPath = model.options.keyPath;
                     if (!keyPath){
                         keyPath = 'ssnId';
