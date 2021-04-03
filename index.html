@@ -23,18 +23,19 @@
 var model = {
     name: 'MyDB', version: 1,
     tables: [{
-        name: 'Usuarios', options: { keyPath: 'ssn', autoIncrement: true},
-        columns: [{ name: 'Id', keyPath: true, autoIncrement: true, unique: true },
+        name: 'Usuarios', options: { keyPath: 'Id', autoIncrement: false},
+        columns: [//{ name: 'Id', keyPath: true, autoIncrement: false, unique: true },
         { name: 'Email', keyPath: false, autoIncrement: false, unique: false },
         { name: 'Name', autoIncrement: false, unique: false },
         { name: 'Apellido', autoIncrement: false, unique: false }]
-    },
-    {
-        name: 'Ministros', options: { keyPath: 'ssn', autoIncrement: true },
-        columns: [{ name: 'Id', keyPath: true, autoIncrement: false, unique: false },
-        { name: 'Email', keyPath: true, autoIncrement: false, unique: false },
-        { name: 'Name', autoIncrement: false, unique: false }]
     }
+    // ,
+    // {
+    //     name: 'Ministros', options: { keyPath: 'ssn', autoIncrement: true },
+    //     columns: [{ name: 'Id', keyPath: true, autoIncrement: false, unique: false },
+    //     { name: 'Email', keyPath: true, autoIncrement: false, unique: false },
+    //     { name: 'Name', autoIncrement: false, unique: false }]
+    // }
     ]
 };
 
@@ -43,6 +44,8 @@ window.MyDb.Init(model);
 
 console.log('pagina',MyDb.Connected());
 
+
+function Insert(){
 window.MyDb.Insert('Usuarios', data = [
     {Name: 'Dinoa2', Email: 'dinsdf2222sdfsdoas@example.com', Id: 210},
     {Name: 'Rapaza', Email: 'rapaza@example.com', Id: 1, Apellido: "otro"},
@@ -50,15 +53,21 @@ window.MyDb.Insert('Usuarios', data = [
 ]).then(function (result){
     console.log('insert',result);
 }).catch(err => console.error(err));
+}
 
+setTimeout(Insert, 1000);
+
+function Update(){
 window.MyDb.Update('Usuarios', data = [
-    {Name: 'Dinoa111', Email: 'dinoa11@example.com', Id: 0},
+    {Name: 'Dinoa111', Email: 'dinoa11@example.com', Id: 210},
     {Name: 'Rapaza211', Email: 'rapazsdgsdga11@example.com', Id: 1,  Apellido: 'cagosgsgsgntoo'},
     {Name: 'Rapaza11', Email: 'dinoa10@example.com', Id: 2,  Apellido: "ortsgsgega"}
 ]).then(function (result){
     console.log('update',result);
 }).catch(err => console.error(err));
+}
 
+setTimeout(Update, 2000);
 
 // window.MyDb.Update('Usuarios', data = [
 //     {Name: 'Dinoa13', Email: 'dinoa33@example.com', Id: 30, Apellido: "cano"},
@@ -91,22 +100,22 @@ window.MyDb.Update('Usuarios', data = [
 
 
 setTimeout(() => {
-    
-    MyDb.Select('Usuarios', function (result){
+    console.log('selects');
+    MyDb.Select('Usuarios').then(function (result){
             console.log('table',result);  
         });
-    MyDb.SelectId('Usuarios', 2, function (result){
+    MyDb.SelectId('Usuarios', 2).then(function (result){
         console.log('by id 2',result);  
     });    
-    MyDb.SelectId('Usuarios', 1, function (result){
+    MyDb.SelectId('Usuarios', 1).then(function (result){
         console.log('by id 10',result);  
     });  
-    MyDb.SelectWhere('Usuarios', 'Email', 'rapaza@example.com', function (result){
-        console.log('by Email rapaza@example.com',result);  
+    MyDb.SelectWhere('Usuarios', 'Email', 'dinoa10@example.com').then(function (result){
+        console.log('by Email dinoa10@example.com',result);  
     }); 
 
  
-}, 1000);
+}, 5000);
     </script>
 
 </body>

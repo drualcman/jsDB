@@ -174,7 +174,7 @@ class jsDB {
             }
             defaultObj = defaultObj.substring(0, defaultObj.length - 1);        //remove last coma
             defaultObj += '}';
-            return JSON.parse(defaultObj);            
+            return JSON.parse(defaultObj);
         }
         else {
             return null;
@@ -189,7 +189,7 @@ class jsDB {
     #CheckModel(table, s) {
         const context = this;
         const model = this.#GetDefault(table);
-        if (model) {            
+        if (model) {
             let canContinue = true;
             for (let key in s) {
                 if (!Object.hasOwnProperty.call(model, key)) {
@@ -203,6 +203,9 @@ class jsDB {
         else {
             return null;
         }
+    }
+    #IsArray(object) {
+        return object.constructor === Array;
     }
     Connected() {
         return 'Connected to ' + this.#DB_NAME + ' with version ' + this.#DB_VERSION;
@@ -307,6 +310,11 @@ class jsDB {
     Insert(table, data) {
         const context = this;
         return new Promise(function (resolve, error) {
+            if (!context.#IsArray(data)) {
+                let array = [];
+                array.push(data);
+                data = array;
+            }
             data.forEach(element => {
                 const obj = context.#CheckModel(table, element);
                 if (obj === null) {
@@ -324,12 +332,11 @@ class jsDB {
                     //get who is the keypath
                     const model = context.#MODELS.find(el => el.name === table);
                     let keyPath = model.options.keyPath;
-                    if (!keyPath){
+                    if (!keyPath) {
                         keyPath = 'ssnId';
-                    }                    
-                    data.forEach(el => {                        
+                    }
+                    data.forEach(el => {
                         let o = context.#MergeObjects(defaultModel, el);
-                        delete o[keyPath];           //remove the keypath from the object
                         store.add(o);
                     });
                     transaction.onerror = ev => {
@@ -356,6 +363,11 @@ class jsDB {
     Update(table, data) {
         const context = this;
         return new Promise(function (resolve, error) {
+            if (!context.#IsArray(data)) {
+                let array = [];
+                array.push(data);
+                data = array;
+            }
             data.forEach(element => {
                 const obj = context.#CheckModel(table, element);
                 if (obj === null) {
@@ -368,37 +380,36 @@ class jsDB {
                 let db = this.result;
                 try {
                     const transaction = db.transaction(table, 'readwrite');
-                    const store = transaction.objectStore(table);                    
+                    const store = transaction.objectStore(table);
                     //get the keypath to retrieve the actual data must be updated
                     const model = context.#MODELS.find(el => el.name === table);
                     let keyPath = model.options.keyPath;
-                    if (!keyPath){
+                    if (!keyPath) {
                         keyPath = 'ssnId';
                     }
                     let result = new Array();
                     data.forEach(el => {
                         let o = context.#CheckModel(table, el);
                         let ssnId = o[keyPath];
-                        if (ssnId){
+                        if (ssnId) {
                             //retrieve the actual data for the index about the element
                             let request = store.get(ssnId);
 
-                            request.onsuccess = function(e) {
+                            request.onsuccess = function (e) {
                                 let data = context.#UpdateModel(e.target.result, o);
                                 const objRequest = store.put(data);
-                            
-                                objRequest.onsuccess = function(e){
+
+                                objRequest.onsuccess = function (e) {
                                     result.push(context.#SetResponse(true, `Success in updating record ${ssnId}`));
                                 };
-                                
+
                                 objRequest.onerror = ev => {
                                     result.push(context.#SetResponse(false, `Error in updating record ${ssnId}`));
                                 };
                             }
                         }
-                        else {                                
+                        else {
                             let data = context.#MergeObjects(o, el);
-                            delete data[keyPath];           //remove the keypath from the object
                             store.put(data);
                         }
                     });

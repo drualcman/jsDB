@@ -39,7 +39,7 @@
          */
         Update: (table, data) => db.Update(table, data),
         /**
-         * Dete one row from a table. Alway return a JSON response
+         * Delete one row from a table. Alway return a JSON response
          * @param {string} table table name
          * @param {any} id value from the keypath
          */
