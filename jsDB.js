@@ -498,7 +498,7 @@ class jsDB {
         return new Blob([buffer], { type: type });
     }
     /**
-     * Promise to get a file from a da from a DB for compatibility with most of the browsers
+     * Promise to get a file from a DB for compatibility with most of the browsers
      * @param {bytes} blob arraybuffer byte to retrive
      */
     HelperBlobToArrayBuffer(blob) {
