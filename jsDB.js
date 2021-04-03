@@ -449,7 +449,7 @@ class jsDB {
                         db.close();
                         resolve({ result: false, message: ev.target.error.message });
                     };
-                    transaction.onsuccess = () => {
+                    transaction.oncomplete = () => {
                         db.close();
                         resolve({ result: true, message: 'Delete done!' });
                     };
@@ -473,12 +473,12 @@ class jsDB {
                 try {
                     const transaction = db.transaction(table, 'readwrite');
                     const store = transaction.objectStore(table);
-                    const req = store.clear();
-                    req.onerror = ev => {
+                    store.clear();
+                    transaction.onerror = ev => {
                         db.close();
                         error({ result: false, message: ev.target.error.message });
                     };
-                    req.onsuccess = () => {
+                    transaction.oncomplete = () => {
                         db.close();
                         resolve({ result: true, message: 'Drop done!' });
                     };
