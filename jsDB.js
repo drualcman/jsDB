@@ -78,7 +78,7 @@ class jsDB {
             const dbconnect = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.OIndexedDB || window.msIndexedDB, IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.OIDBTransaction || window.msIDBTransaction;
             return dbconnect;
         } catch (error) {
-            throw this.#SetResponse(false, error.message);
+            throw [this.#SetResponse(false, error.message)];
         }
     }
     /**
@@ -226,7 +226,7 @@ class jsDB {
                     const request = store.getAll();
                     request.onerror = ev => {
                         db.close();
-                        error(context.#SetResponse(false, ev.target.error.message));
+                        resolve([context.#SetResponse(false, ev.target.error.message)]);
                     };
                     request.onsuccess = () => {
                         db.close();
@@ -234,7 +234,7 @@ class jsDB {
                     };
                 } catch (e) {
                     db.close();
-                    error(context.#SetResponse(false, e.message));
+                    error([context.#SetResponse(false, e.message)]);
                 }
             }
         });
@@ -256,7 +256,7 @@ class jsDB {
                     const request = store.getAll(id);
                     request.onerror = ev => {
                         db.close();
-                        error(context.#SetResponse(false, ev.target.error.message));
+                        resolve([context.#SetResponse(false, ev.target.error.message)]);
                     };
                     request.onsuccess = function () {
                         db.close();
@@ -264,7 +264,7 @@ class jsDB {
                     }
                 } catch (e) {
                     db.close();
-                    error(context.#SetResponse(false, e.message));
+                    error([context.#SetResponse(false, e.message)]);
                 }
             }
         });
@@ -288,7 +288,7 @@ class jsDB {
                     const request = index.getAll(value);
                     request.onerror = ev => {
                         db.close();
-                        error(context.#SetResponse(false, ev.target.error.message));
+                        resolve([context.#SetResponse(false, ev.target.error.message)]);
                     };
                     request.onsuccess = function () {
                         db.close();
@@ -296,7 +296,7 @@ class jsDB {
                     }
                 } catch (e) {
                     db.close();
-                    error(context.#SetResponse(false, e.message));
+                    error([context.#SetResponse(false, e.message)]);
                 }
             }
         });
@@ -318,7 +318,7 @@ class jsDB {
             data.forEach(element => {
                 const obj = context.#CheckModel(table, element);
                 if (obj === null) {
-                    error(context.#SetResponse(false, "Model doesn't match"));
+                    resolve([context.#SetResponse(false, "Model doesn't match")]);
                     return;
                 }
             });
@@ -371,7 +371,7 @@ class jsDB {
             data.forEach(element => {
                 const obj = context.#CheckModel(table, element);
                 if (obj === null) {
-                    error(context.#SetResponse(false, "Model doesn't match"));
+                    resolve([context.#SetResponse(false, "Model doesn't match")]);
                     return;
                 }
             });
@@ -446,16 +446,18 @@ class jsDB {
                     const store = transaction.objectStore(table);
                     store.delete(id);
                     transaction.onerror = ev => {
+                        console.log(ev);
                         db.close();
-                        resolve({ result: false, message: ev.target.error.message });
+                        resolve([context.#SetResponse(false, ev.target.error.message)]);
                     };
-                    transaction.oncomplete = () => {
+                    transaction.oncomplete = res => {
+                        console.log(res)
                         db.close();
-                        resolve({ result: true, message: 'Delete done!' });
+                        resolve([context.#SetResponse(true, 'Delete done!')]);
                     };
                 } catch (e) {
                     db.close();
-                    error(context.#SetResponse(false, e.message));
+                    error([context.#SetResponse(false, e.message)]);
                 }
             };
         });
@@ -476,15 +478,15 @@ class jsDB {
                     store.clear();
                     transaction.onerror = ev => {
                         db.close();
-                        error({ result: false, message: ev.target.error.message });
+                        resolve([context.#SetResponse(false, ev.target.error.message)]);
                     };
                     transaction.oncomplete = () => {
                         db.close();
-                        resolve({ result: true, message: 'Drop done!' });
+                        resolve([context.#SetResponse(true, 'Drop done!')]);
                     };
                 } catch (e) {
                     db.close();
-                    error(context.#SetResponse(false, e.message));
+                    error([context.#SetResponse(false, e.message)]);
                 }
             };
         });
