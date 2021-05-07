@@ -12,124 +12,144 @@
 </head>
 
 <body>    
-    <div class="container">
-        <h1 class="title">IndexedDb Tests</h1>
-    </div>
-
-    <article class="message">
-        <div class="message-body">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. <strong>Pellentesque risus mi</strong>, tempus quis placerat ut, porta nec nulla. Vestibulum rhoncus ac ex sit amet fringilla. Nullam gravida purus diam, et dictum <a>felis venenatis</a> efficitur. Aenean ac <em>eleifend lacus</em>, in mollis lectus. Donec sodales, arcu et sollicitudin porttitor, tortor urna tempor ligula, id porttitor mi magna a neque. Donec dui urna, vehicula et sem eget, facilisis sodales sem.
-          <button class="button is-loading is-pulled-right is-primary">Loading</button>
+    <section class="hero is-fullheight is-link">
+        <div class="hero-head">
+            <div class="navbar">
+                <div class="container">
+                    <div class="navbar-brand">
+                        <a class="navbar-item">
+                            <p class="title">
+                                IndexedDb Tests
+                            </p>
+                        </a>
+                      </div>
+                      
+                      <div id="navbarMenuHeroA" class="navbar-menu">
+                        <div class="navbar-end">
+                          <span class="navbar-item">
+                            <span id="waiting"></span>
+                          </span>
+                        </div>
+                      </div>
+                </div>
+            </div>
         </div>
-      </article>
+            <div class="hero-body">
+                <p class="container" id="messages"></p>
+            </div>
+      </section>
+      
 
     <script src="jsDB.js"></script>
     <script src="MyDbJS.js"></script>
     <script>
+        function AddWaitingMessage(){
+            let button = document.createElement('button');
+            button.className = 'button is-loading is-primary';    
+            let container = document.getElementById('waiting');
+            container.appendChild(button);
+        }
 
-function RemoveWaitingMessage(){
-    let button = document.querySelector('.button.is-loading');
-    let message = button.parentElement.parentElement;
-    document.body.removeChild(message);
-}
+        function RemoveWaitingMessage(){
+            let button = document.querySelector('.button.is-loading');
+            let container = document.getElementById('waiting');
+            container.removeChild(button);
+        }
 
+        var model = {
+            name: 'MyDB', version: 1,
+            tables: [{
+                name: 'Usuarios', options: { keyPath: 'Id', autoIncrement: false},
+                columns: [//{ name: 'Id', keyPath: true, autoIncrement: false, unique: true },
+                { name: 'Email', keyPath: false, autoIncrement: false, unique: false },
+                { name: 'Name', autoIncrement: false, unique: false },
+                { name: 'Apellido', autoIncrement: false, unique: false }]
+            }]
+        };
 
-var model = {
-    name: 'MyDB', version: 1,
-    tables: [{
-        name: 'Usuarios', options: { keyPath: 'Id', autoIncrement: false},
-        columns: [//{ name: 'Id', keyPath: true, autoIncrement: false, unique: true },
-        { name: 'Email', keyPath: false, autoIncrement: false, unique: false },
-        { name: 'Name', autoIncrement: false, unique: false },
-        { name: 'Apellido', autoIncrement: false, unique: false }]
-    }
-    // ,
-    // {
-    //     name: 'Ministros', options: { keyPath: 'ssn', autoIncrement: true },
-    //     columns: [{ name: 'Id', keyPath: true, autoIncrement: false, unique: false },
-    //     { name: 'Email', keyPath: true, autoIncrement: false, unique: false },
-    //     { name: 'Name', autoIncrement: false, unique: false }]
-    // }
-    ]
-};
+        const msg = document.getElementById('messages');
 
-window.MyDb.Init(model);
+        AddWaitingMessage();
+        msg.innerHTML = `${msg.innerHTML}<br/>Iniciando base de datos...`;
 
+        function Paso1(){
+            window.MyDb.Init(model);
+            console.log('pagina',MyDb.Connected());
+            RemoveWaitingMessage();
+            msg.innerHTML = `${msg.innerHTML}<br/>Completado...`;
+            setTimeout(Paso2, 2000);    
+        }
 
-console.log('pagina',MyDb.Connected());
+        function  Paso2(){
+            AddWaitingMessage();
+            msg.innerHTML = `${msg.innerHTML}<br/>Insertando registro...`;
+            setTimeout(Insert, 1000);
+        }
 
+        function  Paso3(){
+            AddWaitingMessage();
+            msg.innerHTML = `${msg.innerHTML}<br/>Actualizando registro...`;
+            setTimeout(Update, 1000);
+        }
 
-function Insert(){
-window.MyDb.Insert('Usuarios', data = [
-    {Name: 'Dinoa2', Email: 'dinsdf2222sdfsdoas@example.com', Id: 210},
-    {Name: 'Rapaza', Email: 'rapaza@example.com', Id: 1, Apellido: "otro"},
-    {Name: 'Rapaza10', Email: 'dinoa1@example.com', Id: 2}
-]).then(function (result){
-    console.log('insert',result);
-}).catch(err => console.error(err));
-}
+        function  Paso4(){
+            AddWaitingMessage();
+            msg.innerHTML = `${msg.innerHTML}<br/>Mostrando log de tablas...`;
+            setTimeout(() => {
+                console.log('Select de las tablas');
+                MyDb.Select('Usuarios').then(function (result){
+                        console.log('table',result);  
+                    });
+                MyDb.SelectId('Usuarios', 2).then(function (result){
+                    console.log('by id 2',result);  
+                });    
+                MyDb.SelectId('Usuarios', 1).then(function (result){
+                    console.log('by id 10',result);  
+                });  
+                MyDb.SelectWhere('Usuarios', 'Email', 'dinoa10@example.com').then(function (result){
+                    console.log('by Email dinoa10@example.com',result);  
+                });  
+                RemoveWaitingMessage();
+                msg.innerHTML = `${msg.innerHTML}<br/>Completado...`;
+            }, 1000);
+        }
 
-setTimeout(Insert, 1000);
+        setTimeout(Paso1, 1000);
 
-function Update(){
-window.MyDb.Update('Usuarios', data = [
-    {Name: 'Dinoa111', Email: 'dinoa11@example.com', Id: 210},
-    {Name: 'Rapaza211', Email: 'rapazsdgsdga11@example.com', Id: 1,  Apellido: 'cagosgsgsgntoo'},
-    {Name: 'Rapaza11', Email: 'dinoa10@example.com', Id: 2,  Apellido: "ortsgsgega"}
-]).then(function (result){
-    console.log('update',result);
-}).catch(err => console.error(err));
-}
-
-setTimeout(Update, 2000);
-
-// window.MyDb.Update('Usuarios', data = [
-//     {Name: 'Dinoa13', Email: 'dinoa33@example.com', Id: 30, Apellido: "cano"},
-//     {Name: 'Rapaza13', Email: 'rapaza33@example.com', Id: 10},
-//     {Name: 'Rapaza13', Email: 'dinoa133@example.com', Id: 20}
-// ]).then(function (result){
-//     console.log('update',result);
-// }).catch(err => console.error(err));
-
-
-// window.MyDb.Insert('Usuarios', data = [
-//     {Name: 'Dinoa13', Email: 'dinoa33@example.com', Id: 30, Apellido: "cano"},
-//     {Name: 'Rapaza13', Email: 'rapaza33@example.com', Id: 10},
-//     {Name: 'Rapaza13', Email: 'dinoa133@example.com', Id: 20}
-// ]).then(function (result){
-//     console.log('update',result);
-// }).catch(err => console.error(err));
-
-// setTimeout(() => {
-    
-//     db.Update('Usuarios', data = [
-//         {Name: 'Rapaza10', ssn: 1, Id: 3},
-//         {ssn: 2, basura: 'algo', Id: 4},
-//         {Name: 'Rapaza11', ssn: 58, Id: 5},
-//         {Name: 'Dinoa1', Email: 'dinoa1@example.com', ssn: 3, Id: 6}
-//     ], function (result) {
-//         console.log('pagina',result);   
-//     });
-// }, 2000);
-
-
-setTimeout(() => {
-    console.log('selects');
-    MyDb.Select('Usuarios').then(function (result){
-            console.log('table',result);  
+        function Insert(){
+        window.MyDb.Insert('Usuarios', data = [
+            {Name: 'Dinoa2', Email: 'dinsdf2222sdfsdoas@example.com', Id: 210},
+            {Name: 'Rapaza', Email: 'rapaza@example.com', Id: 1, Apellido: "otro"},
+            {Name: 'Rapaza10', Email: 'dinoa1@example.com', Id: 2}
+        ]).then(function (result){
+            console.log('insert',result);
+            RemoveWaitingMessage();
+            msg.innerHTML = `${msg.innerHTML}<br/>Completado...`;
+            setTimeout(Paso3, 2000);
+        }).catch(function (err) {     
+            RemoveWaitingMessage();
+            msg.innerHTML = `${msg.innerHTML}<br/>Error: ${err.message}`;
+            console.error(err)
         });
-    MyDb.SelectId('Usuarios', 2).then(function (result){
-        console.log('by id 2',result);  
-    });    
-    MyDb.SelectId('Usuarios', 1).then(function (result){
-        console.log('by id 10',result);  
-    });  
-    MyDb.SelectWhere('Usuarios', 'Email', 'dinoa10@example.com').then(function (result){
-        console.log('by Email dinoa10@example.com',result);  
-    }); 
+        }
 
- 
-}, 5000);
+        function Update(){
+        window.MyDb.Update('Usuarios', data = [
+            {Name: 'Dinoa111', Email: 'dinoa11@example.com', Id: 210},
+            {Name: 'Rapaza211', Email: 'rapazsdgsdga11@example.com', Id: 1,  Apellido: 'cagosgsgsgntoo'},
+            {Name: 'Rapaza11', Email: 'dinoa10@example.com', Id: 2,  Apellido: "ortsgsgega"}
+        ]).then(function (result){
+            console.log('update',result);
+            RemoveWaitingMessage();
+            msg.innerHTML = `${msg.innerHTML}<br/>Completado...`;
+            setTimeout(Paso4, 2000);    
+        }).catch(function (err) {     
+            RemoveWaitingMessage();
+            msg.innerHTML = `${msg.innerHTML}<br/>Error: ${err.message}`;
+            console.error(err)
+        });
+        }
+
     </script>
 
 </body>
