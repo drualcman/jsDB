@@ -338,11 +338,11 @@ class jsDB {
                     //get who is the keypath
                     const model = context.MODELS.find(el => el.name === table);
                     let keyPath = model.options.keyPath;
-                    if (!keyPath) {
-                        keyPath = 'ssnId';
-                    }
                     data.forEach(el => {
                         let o = context.MergeObjects(defaultModel, el);
+                        if (o[keyPath] === null) {
+                            delete o[keyPath];
+                        }
                         store.add(o);
                     });
                     transaction.onerror = ev => {
