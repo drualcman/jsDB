@@ -127,7 +127,10 @@
             setTimeout(Paso3, 2000);
         }).catch(function (err) {     
             RemoveWaitingMessage();
-            msg.innerHTML = `${msg.innerHTML}<br/>Error: ${err.message}`;
+            console.log(err.length);
+            console.log(err);
+            console.log(err[0]);
+            msg.innerHTML = `${msg.innerHTML}<br/>Error: ${err[0].Message}`;
             console.error(err)
         });
         }
