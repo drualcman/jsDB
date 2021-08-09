@@ -227,8 +227,8 @@ class jsDB {
                     const request = store.getAll();
                     request.onerror = ev => {
                         db.close();
-                        resolve([context.SetResponse(false, ev.target.error.message)]);
                         console.warn(ev.target.error.message);
+                        resolve([context.SetResponse(false, ev.target.error.message)]);
                     };
                     request.onsuccess = () => {
                         db.close();
@@ -236,8 +236,8 @@ class jsDB {
                     };
                 } catch (e) {
                     db.close();
-                    error([context.SetResponse(false, e.message)]);
                     console.error(e);
+                    error([context.SetResponse(false, e.message)]);
                 }
             }
         });
@@ -259,8 +259,8 @@ class jsDB {
                     const request = store.getAll(id);
                     request.onerror = ev => {
                         db.close();
-                        resolve([context.SetResponse(false, ev.target.error.message)]);
                         console.warn(ev.target.error.message);
+                        resolve([context.SetResponse(false, ev.target.error.message)]);
                     };
                     request.onsuccess = () => {
                         db.close();
@@ -268,8 +268,8 @@ class jsDB {
                     }
                 } catch (e) {
                     db.close();
-                    error([context.SetResponse(false, e.message)]);
                     console.error(e);
+                    error([context.SetResponse(false, e.message)]);
                 }
             }
         });
@@ -293,8 +293,8 @@ class jsDB {
                     const request = index.getAll(value);
                     request.onerror = ev => {
                         db.close();
-                        resolve([context.SetResponse(false, ev.target.error.message)]);
                         console.warn(ev.target.error.message);
+                        resolve([context.SetResponse(false, ev.target.error.message)]);
                     };
                     request.onsuccess = () => {
                         db.close();
@@ -302,8 +302,8 @@ class jsDB {
                     }
                 } catch (e) {
                     db.close();
-                    error([context.SetResponse(false, e.message)]);
                     console.error(e);
+                    error([context.SetResponse(false, e.message)]);
                 }
             }
         });
@@ -486,18 +486,46 @@ class jsDB {
                 try {
                     const transaction = db.transaction(table, 'readwrite');
                     const store = transaction.objectStore(table);
-                    console.log(table);
-                    console.log(id, typeof (id));
                     store.delete(id);
                     transaction.onerror = ev => {
                         db.close();
-                        resolve([context.SetResponse(false, ev.target.error.message)]);
                         console.warn(ev.target.error.message);
+                        resolve([context.SetResponse(false, ev.target.error.message)]);
                     };
-                    transaction.oncomplete = (r) => {
+                    transaction.oncomplete = r => {
                         db.close();
                         resolve([context.SetResponse(true, 'Delete done!')]);
-                        console.info(r);
+                    };
+                } catch (e) {
+                    db.close();
+                    console.error(e);
+                    error([context.SetResponse(false, e.message)]);
+                }
+            };
+        });
+    }    
+    /**
+     * Delete all the data from a table. Alway return a JSON response
+     * @param {string} table table name
+     */
+     Clean(table) {
+        const context = this;
+        return new Promise(function (resolve, error) {
+            const dbconnect = context.OpenDB().open(context.DB_NAME, context.DB_VERSION);
+            dbconnect.onsuccess = function () {
+                const db = this.result;
+                try {
+                    const transaction = db.transaction(table, 'readwrite');
+                    const store = transaction.objectStore(table);
+                    store.clear();
+                    transaction.oncomplete = () => {
+                        db.close();
+                        resolve([context.SetResponse(true, `Table ${table} is empty`)]);
+                    };
+                    transaction.onerror = ev => {
+                        db.close();
+                        console.warn(ev.target.error.message);
+                        resolve([context.SetResponse(false, ev.target.error.message)]);
                     };
                 } catch (e) {
                     db.close();
@@ -508,35 +536,36 @@ class jsDB {
         });
     }
     /**
-     * Drop a table. Alway return a JSON response
+     * This is equal to Clean. Alway return a JSON response
      * @param {string} table table name
      */
     Drop(table) {
-        const context = this;
-        return new Promise(function (resolve, error) {
-            const dbconnect = context.OpenDB().open(context.DB_NAME, context.DB_VERSION);
-            dbconnect.onsuccess = function () {
-                const db = this.result;
-                try {
-                    const transaction = db.transaction(table, 'readwrite');
-                    const store = transaction.objectStore(table);
-                    store.clear();
-                    transaction.onerror = ev => {
-                        db.close();
-                        resolve([context.SetResponse(false, ev.target.error.message)]);
-                        console.warn(ev.target.error.message);
-                    };
-                    transaction.oncomplete = () => {
-                        db.close();
-                        resolve([context.SetResponse(true, 'Drop done!')]);
-                    };
-                } catch (e) {
-                    db.close();
-                    error([context.SetResponse(false, e.message)]);
-                    console.error(e);
-                }
-            };
-        });
+        return this.Clean(table);
+        // const context = this;
+        // return new Promise(function (resolve, error) {
+        //     const dbconnect = context.OpenDB().open(context.DB_NAME, context.DB_VERSION + 1);
+        //     dbconnect.onupgradeneeded = ev => {
+        //         var db = dbconnect.result;
+        //         db.deleteObjectStore(table);          
+        //         db.close();
+        //     };
+        //     dbconnect.onsuccess = function () {     
+        //         const dbconnectw = context.OpenDB().open(context.DB_NAME, context.DB_VERSION);    
+        //         dbconnectw.onupgradeneeded = ev => {
+        //             var db = dbconnectw.result;         
+        //             db.close();
+        //         };      
+        //         dbconnectw.onsuccess = function () {   
+        //             resolve([context.SetResponse(true, 'Drop done!')]);
+        //         };
+        //         dbconnectw.onerror = function (ev) {               
+        //             resolve([context.SetResponse(false, ev.target.error.message)]);
+        //         };
+        //     };
+        //     dbconnect.onerror = function (ev) {               
+        //         error([context.SetResponse(false, ev.target.error.message)]);
+        //     };
+        // });
     }
     /**
      * To store files into a db for compatibility with most of the browsers
