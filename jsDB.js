@@ -47,6 +47,10 @@ class jsDB {
                                 else {
                                     keyPath = 'ssnId';
                                     increment = true;
+                                }                                
+                                //if table exist delete, data will lost
+                                if (db.objectStoreNames.contains(tabla.name)) {
+                                    db.deleteObjectStore(tabla.name); 
                                 }
                                 //add table
                                 let objectStore = db.createObjectStore(tabla.name, { keyPath: keyPath, autoIncrement: increment });

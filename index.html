@@ -56,12 +56,12 @@
         }
 
         var model = {
-            name: 'MyDB', version: 1,
+            name: 'MyDB', version: 4,
             tables: [{
                 name: 'Usuarios', options: { keyPath: 'Id', autoIncrement: false},
-                columns: [//{ name: 'Id', keyPath: true, autoIncrement: false, unique: true },
+                columns: [{ name: 'Id', keyPath: true, autoIncrement: false, unique: true },
                 { name: 'Email', keyPath: false, autoIncrement: false, unique: false },
-                { name: 'Name', autoIncrement: false, unique: false },
+                { name: 'Names', autoIncrement: false, unique: false },
                 { name: 'Apellido', autoIncrement: false, unique: false }]
             }]
         };
@@ -72,11 +72,16 @@
         msg.innerHTML = `${msg.innerHTML}<br/>Iniciando base de datos...`;
 
         function Paso1(){
-            window.MyDb.Init(model);
-            console.log('pagina',MyDb.Connected());
-            RemoveWaitingMessage();
-            msg.innerHTML = `${msg.innerHTML}<br/>Completado...`;
-            setTimeout(Paso2, 2000);    
+            try {
+                window.MyDb.Init(model);
+                console.log('pagina',MyDb.Connected());
+                RemoveWaitingMessage();
+                msg.innerHTML = `${msg.innerHTML}<br/>Completado...`;
+                setTimeout(Paso2, 2000); 
+            } catch (error) {                
+                msg.innerHTML = `${msg.innerHTML}<br/>${error.message}`;
+                console.log(model);
+            }
         }
 
         function  Paso2(){
